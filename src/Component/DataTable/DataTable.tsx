@@ -22,6 +22,9 @@ import './DataTable.css'
     const [inputHash, setInputHash] = useState(''); 
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [status, setStatus] = useState<Status>(Status.TODO);
+
   const columns: GridColDef[] = [
     { 
       field: 'title', 
@@ -121,6 +124,38 @@ import './DataTable.css'
       setInputHash('')
     } 
   }
+  
+// edit status
+  const handleRowClick = (params: GridRowParams) => { 
+    const task = tasks.find(t => t.id === params.id); 
+    if (task) { 
+      setSelectedTask(task); 
+      setStatus(task.status); 
+      setEditDialogOpen(true); 
+    } 
+  }
+  
+  const handleEditDialogClose = () => { 
+    setEditDialogOpen(false); 
+    setSelectedTask(null); 
+  }
+
+  const handleStatusChange = (event: React.ChangeEvent<HTMLInputElement>) => { 
+    setStatus(event.target.value as Status); 
+  }
+
+  const handleSaveStatus = () => { 
+    if (selectedTask) { 
+      const updatedTasks = tasks.map(
+        task => task.id === selectedTask.id ? { ...task, status } : task 
+      ); 
+      setTasks(updatedTasks); 
+      localStorage.setItem('tasks', JSON.stringify(updatedTasks)); 
+      setEditDialogOpen(false); 
+      setSnackbarMessage('Status updated successfully!'); 
+      setSnackbarOpen(true); 
+    } 
+  }
 
 
 
@@ -133,6 +168,7 @@ import './DataTable.css'
               columns={columns}
               initialState={{ pagination: { paginationModel } }}
               pageSizeOptions={[5, 10]}
+              onRowClick={handleRowClick}
             />
           : <Alert severity="info" icon={false}>
               There is no Task
@@ -187,6 +223,35 @@ import './DataTable.css'
             Confirm Delete
           </Button> 
         </DialogActions> 
+      </Dialog>
+
+      <Dialog open={editDialogOpen} onClose={handleEditDialogClose}> 
+        <DialogTitle>
+          Edit Task Status
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Select the new status for the task. 
+          </DialogContentText>
+          <TextField 
+            select 
+            label="Status" 
+            value={status} 
+            onChange={handleStatusChange} 
+            fullWidth 
+            sx={{mt:2}} 
+           > 
+            {
+              Object.values(Status).map((statusOption) => ( 
+                <MenuItem key={statusOption} value={statusOption}>{statusOption}</MenuItem> 
+              ))
+            }
+          </TextField> 
+          </DialogContent> 
+          <DialogActions> 
+            <Button onClick={handleEditDialogClose}>Cancel</Button> 
+            <Button onClick={handleSaveStatus} color="primary">Save</Button> 
+          </DialogActions> 
       </Dialog>
 
       <Snackbar 
