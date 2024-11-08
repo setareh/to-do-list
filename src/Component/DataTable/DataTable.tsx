@@ -21,7 +21,7 @@ import './DataTable.css'
     const [nestedDialogOpen, setNestedDialogOpen] = useState(false); 
     const [inputHash, setInputHash] = useState(''); 
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-
+    
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [status, setStatus] = useState<Status>(Status.TODO);
 
@@ -70,7 +70,7 @@ import './DataTable.css'
           <Button variant="text" color="primary" size="large" onClick={() => handleEdit(params.id as number)} style={{ marginRight: 8 }} > 
               <Edit /> 
           </Button> 
-          <Button variant="text" color="error" size="large" onClick={() => handleDelete(params.id as number)} > 
+          <Button variant="text" color="error" size="large" onClick={(event) => handleDelete(params.id as number, event)} > 
             <Delete /> 
           </Button> 
         </div> ) }
@@ -80,7 +80,8 @@ import './DataTable.css'
     console.log('edit',id);
   }
 
-  const handleDelete = (taskId: number) => { 
+  const handleDelete = (taskId: number, event: React.MouseEvent<HTMLButtonElement>) => { 
+    event.stopPropagation();
     const task = tasks.find(t => t.id === taskId); 
     if (task) { 
       setSelectedTask(task); 
@@ -117,7 +118,7 @@ import './DataTable.css'
       setNestedDialogOpen(false); 
       setSnackbarMessage('Task deleted successfully!'); 
       setSnackbarOpen(true); 
-      setInputHash('')
+      setInputHash('');
     } else { 
       setSnackbarMessage('Task key does not match! Task not deleted.'); 
       setSnackbarOpen(true);
