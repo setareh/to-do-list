@@ -1,28 +1,34 @@
 import Highcharts from 'highcharts'
 import HighchartsReact from "highcharts-react-official";
+import calculateStatusPercentages from '../../utils/calculateStatusPercentages'
+import { Task } from '../../Types/Task';
+import dayjs from 'dayjs';
 
-type Props = {}
 
-const options: Highcharts.Options = { 
+const SemiCirclePieChart: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
+  const data = calculateStatusPercentages(tasks);
+  const currentDate = dayjs().format('DD MMM YYYY');
+
+  const options: Highcharts.Options = { 
     chart: { 
       type: 'pie', 
       height: '50%' }, 
       title: { 
-        text: 'Status', 
+        text: `Status <br> ${currentDate}`, 
         align: 'center', 
         verticalAlign: 'middle', 
         y: 100, 
         }, 
     plotOptions: { 
       pie: { 
-        dataLabels: {
-          enabled: true,
-                  distance: -50,
-                  style: {
-                      fontWeight: 'bold',
-                      color: 'white'
-                  }
-        },
+      dataLabels: {
+        enabled: true,
+        distance: -70,
+        style: {
+            fontWeight: 'bold',
+            color: 'white'
+        }
+      },
         startAngle: -90, 
         endAngle: 90, 
         center: ['50%', '75%'], 
@@ -30,25 +36,13 @@ const options: Highcharts.Options = {
         series: [{ 
           type: 'pie', 
           innerSize: '50%',
-          data: [ 
-            { name: 'Todo', 
-              y: 30 }, 
-            { name: 'Doing', 
-              y: 20 },
-            { name: 'Done', 
-              y: 10 },
-            { name: 'Warning', 
-              y: 10 },
-            { name: 'Pending', 
-              y: 20 },
-            { name: 'Failed', 
-              y: 10 },
-          ] 
+          data: data,
         }] 
       };
 
-export default function SemiCirclePieChart({}: Props) {
   return (
     <HighchartsReact highcharts={Highcharts} options={options} />
-)
+  )
 }
+
+export default SemiCirclePieChart;
