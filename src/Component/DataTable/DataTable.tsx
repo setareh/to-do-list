@@ -3,9 +3,11 @@ import { Alert, Button, Dialog, DialogActions, DialogContent, DialogContentText,
 import { DataGrid, GridColDef, GridRenderCellParams, GridRowParams } from "@mui/x-data-grid";
 import React, { useState } from "react";
 import { Priority, Status, Task } from "../../Types/Task";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import { convertHours } from "../../utils/convertHours";
 import './DataTable.css'
+import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
   interface DataTableProps {
     tasks : Task[];
     setTasks: React.Dispatch<React.SetStateAction<Task[]>>
@@ -21,6 +23,10 @@ import './DataTable.css'
     const [nestedDialogOpen, setNestedDialogOpen] = useState(false); 
     const [inputHash, setInputHash] = useState(''); 
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+    
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [editTaskDialogOpen, setEditTaskDialogOpen] = useState(false);
+    const [status, setStatus] = useState<Status>(Status.TODO);
 
   const columns: GridColDef[] = [
     { 
@@ -64,20 +70,43 @@ import './DataTable.css'
       sortable: false, 
       renderCell: (params: GridRenderCellParams) => ( 
         <div> 
-          <Button variant="text" color="primary" size="large" onClick={() => handleEdit(params.id as number)} style={{ marginRight: 8 }} > 
+          <Button variant="text" color="primary" size="large" onClick={(event) => handleEdit(params.id as number, event)} style={{ marginRight: 8 }} > 
               <Edit /> 
           </Button> 
-          <Button variant="text" color="error" size="large" onClick={() => handleDelete(params.id as number)} > 
+          <Button variant="text" color="error" size="large" onClick={(event) => handleDelete(params.id as number, event)} > 
             <Delete /> 
           </Button> 
         </div> ) }
   ];
 
-  const handleEdit = (id: number) => {
-    console.log('edit',id);
+  const handleEdit = (id: number, event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    const task = tasks.find(task => task.id === id); 
+    if (task) { 
+      setSelectedTask(task); 
+      setEditTaskDialogOpen(true); 
+    }
   }
 
-  const handleDelete = (taskId: number) => { 
+  const handleFieldChange = (field: keyof Task, value: any) => { 
+    if (selectedTask) { 
+      setSelectedTask({ ...selectedTask, [field]: value }); 
+    } 
+  }
+
+  const handleSaveEdit = () => { 
+    if (selectedTask) { 
+      const updatedTasks = tasks.map(task => task.id === selectedTask.id ? selectedTask : task ); 
+      setTasks(updatedTasks); 
+      localStorage.setItem('tasks', JSON.stringify(updatedTasks)); 
+      setEditTaskDialogOpen(false); 
+      setSnackbarMessage('Task updated successfully!'); 
+      setSnackbarOpen(true); 
+    } 
+  }
+// delete task
+  const handleDelete = (taskId: number, event: React.MouseEvent<HTMLButtonElement>) => { 
+    event.stopPropagation();
     const task = tasks.find(t => t.id === taskId); 
     if (task) { 
       setSelectedTask(task); 
@@ -114,11 +143,48 @@ import './DataTable.css'
       setNestedDialogOpen(false); 
       setSnackbarMessage('Task deleted successfully!'); 
       setSnackbarOpen(true); 
-      setInputHash('')
+      setInputHash('');
     } else { 
       setSnackbarMessage('Task key does not match! Task not deleted.'); 
       setSnackbarOpen(true);
       setInputHash('')
+    } 
+  }
+  
+// edit status
+  const handleRowClick = (params: GridRowParams) => { 
+    const task = tasks.find(t => t.id === params.id); 
+    if (task) { 
+      setSelectedTask(task); 
+      setStatus(task.status); 
+      setEditDialogOpen(true); 
+    } 
+  }
+  
+  const handleEditDialogClose = () => { 
+    setEditDialogOpen(false); 
+    setSelectedTask(null); 
+  }
+
+  const handleEditTaskDialogClose = () => { 
+    setEditTaskDialogOpen(false); 
+    setSelectedTask(null); 
+  }
+
+  const handleStatusChange = (event: React.ChangeEvent<HTMLInputElement>) => { 
+    setStatus(event.target.value as Status); 
+  }
+
+  const handleSaveStatus = () => { 
+    if (selectedTask) { 
+      const updatedTasks = tasks.map(
+        task => task.id === selectedTask.id ? { ...task, status } : task 
+      ); 
+      setTasks(updatedTasks); 
+      localStorage.setItem('tasks', JSON.stringify(updatedTasks)); 
+      setEditDialogOpen(false); 
+      setSnackbarMessage('Status updated successfully!'); 
+      setSnackbarOpen(true); 
     } 
   }
 
@@ -133,6 +199,7 @@ import './DataTable.css'
               columns={columns}
               initialState={{ pagination: { paginationModel } }}
               pageSizeOptions={[5, 10]}
+              onRowClick={handleRowClick}
             />
           : <Alert severity="info" icon={false}>
               There is no Task
@@ -187,6 +254,101 @@ import './DataTable.css'
             Confirm Delete
           </Button> 
         </DialogActions> 
+      </Dialog>
+
+      <Dialog open={editDialogOpen} onClose={handleEditDialogClose}> 
+        <DialogTitle>
+          Edit Task Status
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Select the new status for the task. 
+          </DialogContentText>
+          <TextField 
+            select 
+            label="Status" 
+            value={status} 
+            onChange={handleStatusChange} 
+            fullWidth 
+            sx={{mt:2}} 
+           > 
+            {
+              Object.values(Status).map((statusOption) => ( 
+                <MenuItem key={statusOption} value={statusOption}>{statusOption}</MenuItem> 
+              ))
+            }
+          </TextField> 
+          </DialogContent> 
+          <DialogActions sx={{px: 3, pb: 2}}> 
+            <Button onClick={handleEditDialogClose}>Cancel</Button> 
+            <Button onClick={handleSaveStatus} color="primary">Save</Button> 
+          </DialogActions> 
+      </Dialog>
+
+      <Dialog open={editTaskDialogOpen} onClose={handleEditTaskDialogClose}> 
+        <DialogTitle>Edit Task</DialogTitle> 
+        <DialogContent> 
+          {
+            selectedTask &&
+              <>
+                <TextField 
+                  label="Title" 
+                  value={selectedTask?.title || ''} 
+                  onChange={(e) => handleFieldChange('title', e.target.value)} 
+                  fullWidth 
+                  sx={{my: 2}} 
+                /> 
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DateTimePicker 
+                    label="Choose time"
+                    value={dayjs(selectedTask.dateTime)}
+                    onChange={(newValue) => handleFieldChange('dateTime', newValue)}
+                    sx={{mb: 2}}
+                    />
+                </LocalizationProvider>
+                <TextField 
+                  label="Estimate" 
+                  type="number" 
+                  value={selectedTask?.estimate} 
+                  onChange={(e) => handleFieldChange('estimate', e.target.value)} 
+                  fullWidth  
+                  sx={{mb: 2}} 
+                /> 
+                <TextField 
+                  select 
+                  label="Priority" 
+                  value={selectedTask?.priority || ''} 
+                  onChange={(e) => handleFieldChange('priority', e.target.value as Priority)} 
+                  fullWidth 
+                  sx={{mb: 2}} 
+                > 
+                  {
+                    Object.values(Priority).map((priorityOption) => ( 
+                    <MenuItem key={priorityOption} value={priorityOption}>{priorityOption}</MenuItem> 
+                    ))
+                  } 
+                </TextField> 
+                <TextField 
+                  select 
+                  label="Status" 
+                  value={selectedTask?.status || ''} onChange={(e) => handleFieldChange('status', e.target.value as Status)} 
+                  fullWidth
+                  sx={{mb: 2}} 
+                > 
+                  {
+                    Object.values(Status).map((statusOption) => ( 
+                    <MenuItem key={statusOption} value={statusOption}>{statusOption}</MenuItem> 
+                    ))
+                  } 
+                </TextField>
+              </>
+          }
+           
+        </DialogContent> 
+        <DialogActions sx={{px: 3, pb: 2}}> 
+          <Button onClick={handleEditTaskDialogClose}>Cancel</Button> 
+          <Button onClick={handleSaveEdit} color="primary">Save</Button> 
+        </DialogActions>
       </Dialog>
 
       <Snackbar 
