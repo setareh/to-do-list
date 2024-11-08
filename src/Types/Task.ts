@@ -1,3 +1,5 @@
+import { Dayjs } from "dayjs";
+
 export enum Priority {
     LOW = 'Low',
     MEDIUM = 'Medium',
@@ -17,7 +19,7 @@ export interface Task {
     id: number;
     title: string;
     priority: Priority;
-    dateTime: Date;
+    dateTime: Dayjs;
     estimate: number;
     status: Status;
     hash: string;
