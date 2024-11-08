@@ -19,7 +19,7 @@ export default function CurrentTime({}: Props) {
       display:'flex',
       flexDirection:'row',
       alignItems: 'center',
-      justifyContent: 'right'
+      justifyContent: {xs: 'left', md: 'right'}
       }}>
       <AccessAlarmOutlinedIcon 
         sx={{mr: 1}} 
