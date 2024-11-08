@@ -1,10 +1,11 @@
 import { Delete, Edit } from "@mui/icons-material";
-import { Alert, Button } from "@mui/material";
-import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import React from "react";
-import { Task } from "../../Types/Task";
-import dayjs from "dayjs";
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, MenuItem, Snackbar, TextField } from "@mui/material";
+import { DataGrid, GridColDef, GridRenderCellParams, GridRowParams } from "@mui/x-data-grid";
+import React, { useState } from "react";
+import { Priority, Status, Task } from "../../Types/Task";
+import dayjs, { Dayjs } from "dayjs";
 import { convertHours } from "../../utils/convertHours";
+import './DataTable.css'
   interface DataTableProps {
     tasks : Task[];
     setTasks: React.Dispatch<React.SetStateAction<Task[]>>
@@ -13,6 +14,13 @@ import { convertHours } from "../../utils/convertHours";
   const paginationModel = { page: 0, pageSize: 5 };
 
   const DataTable: React.FC<DataTableProps> = ({ tasks, setTasks }) => {
+    const [snackbarOpen, setSnackbarOpen] = useState(false); 
+    const [snackbarMessage, setSnackbarMessage] = useState(''); 
+
+    const [mainDialogOpen, setMainDialogOpen] = useState(false); 
+    const [nestedDialogOpen, setNestedDialogOpen] = useState(false); 
+    const [inputHash, setInputHash] = useState(''); 
+    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const columns: GridColDef[] = [
     { 
@@ -60,7 +68,7 @@ import { convertHours } from "../../utils/convertHours";
               <Edit /> 
           </Button> 
           <Button variant="text" color="error" size="large" onClick={() => handleDelete(params.id as number)} > 
-              <Delete /> 
+            <Delete /> 
           </Button> 
         </div> ) }
   ];
@@ -69,11 +77,52 @@ import { convertHours } from "../../utils/convertHours";
     console.log('edit',id);
   }
 
-  const handleDelete = (id: number) => {
-    const updatedTasks = tasks.filter(task => task.id !== id); 
-    setTasks(updatedTasks); 
-    localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+  const handleDelete = (taskId: number) => { 
+    const task = tasks.find(t => t.id === taskId); 
+    if (task) { 
+      setSelectedTask(task); 
+      setMainDialogOpen(true); 
+    } 
   }
+
+  const handleMainDialogClose = () => { 
+    setMainDialogOpen(false); 
+    setInputHash(''); 
+    setSelectedTask(null); 
+  }; 
+
+  const handleNestedDialogOpen = () => { 
+    setNestedDialogOpen(true); 
+    setMainDialogOpen(false); 
+  }
+
+  const handleNestedDialogClose = () => { 
+    setNestedDialogOpen(false); 
+    setSelectedTask(null); 
+    setInputHash('')
+  }
+
+    const handleSnackbarClose = () => { 
+    setSnackbarOpen(false); 
+  }
+
+  const handleDeleteConfirm = () => { 
+    if (selectedTask && inputHash === selectedTask.hash) { 
+      const updatedTasks = tasks.filter(task => task.id !== selectedTask.id); 
+      setTasks(updatedTasks); 
+      localStorage.setItem('tasks', JSON.stringify(updatedTasks)); 
+      setNestedDialogOpen(false); 
+      setSnackbarMessage('Task deleted successfully!'); 
+      setSnackbarOpen(true); 
+      setInputHash('')
+    } else { 
+      setSnackbarMessage('Task key does not match! Task not deleted.'); 
+      setSnackbarOpen(true);
+      setInputHash('')
+    } 
+  }
+
+
 
   return (
     <>
@@ -85,10 +134,73 @@ import { convertHours } from "../../utils/convertHours";
               initialState={{ pagination: { paginationModel } }}
               pageSizeOptions={[5, 10]}
             />
-          : <Alert severity="info">
+          : <Alert severity="info" icon={false}>
               There is no Task
             </Alert> 
       }
+      <Dialog open={mainDialogOpen} onClose={handleMainDialogClose}> 
+        <DialogTitle>
+          Are you sure you want to delete this task?
+        </DialogTitle> 
+        <DialogContent> 
+          <DialogContentText>
+            If you delete 
+            <span style={{fontWeight: 'bold'}}>
+              {` ${selectedTask?.title}`}
+            </span>
+            , it will be permanently removed.
+          </DialogContentText> 
+        </DialogContent> 
+        <DialogActions sx={{px: 3, pb: 2}}> 
+          <Button onClick={handleMainDialogClose}>
+            Cancel
+          </Button> 
+          <Button onClick={handleNestedDialogOpen} color="error">
+            Delete
+          </Button> 
+        </DialogActions> 
+      </Dialog>
+
+      <Dialog open={nestedDialogOpen} onClose={handleNestedDialogClose}> 
+        <DialogTitle>
+          Enter Task Key
+        </DialogTitle> 
+        <DialogContent> 
+          <DialogContentText>
+            If you are sure that you want to delete it, enter the task key <code className="code-label">{selectedTask?.hash}</code> 
+          </DialogContentText>
+          <TextField 
+            autoFocus 
+            sx={{mt:2}}
+            label="Task Key" 
+            type="text" 
+            fullWidth 
+            value={inputHash} 
+            onChange={(e) => setInputHash(e.target.value)} 
+          /> 
+        </DialogContent> 
+        <DialogActions sx={{px: 3, pb: 2}}> 
+          <Button onClick={handleNestedDialogClose}>
+            Cancel
+          </Button> 
+          <Button onClick={handleDeleteConfirm} color="error">
+            Confirm Delete
+          </Button> 
+        </DialogActions> 
+      </Dialog>
+
+      <Snackbar 
+        open={snackbarOpen} 
+        autoHideDuration={2000} 
+        onClose={handleSnackbarClose}> 
+        <Alert 
+          onClose={handleSnackbarClose} 
+          severity={snackbarMessage.includes('not') ? 'error' : 'success'}
+          variant="filled"
+          > 
+          {snackbarMessage} 
+        </Alert> 
+      </Snackbar>
     </>
     
   )
