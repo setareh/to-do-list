@@ -57,7 +57,9 @@ export default function HomePage({}: Props) {
     <Box sx={{my: 2}}>
       <Grid2 container spacing={{ xs: 2, md: 3 }} columns={{ xs: 1, sm: 8 }} >
         <Grid2 size={{ xs: 12}} >
-          <SemiCirclePieChart />
+          <Box id="container" sx={{width:'100%', height: {xs:'220px', sm: '250px', md: '350px'}}}>
+            <SemiCirclePieChart  tasks={tasks} />
+          </Box>
         </Grid2>
       </Grid2>
     </Box>
