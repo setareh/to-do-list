@@ -17,7 +17,7 @@ const SemiCirclePieChart: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
         text: `Status <br> ${currentDate}`, 
         align: 'center', 
         verticalAlign: 'middle', 
-        y: 100, 
+        y: 0, 
         }, 
     plotOptions: { 
       pie: { 
@@ -31,13 +31,63 @@ const SemiCirclePieChart: React.FC<{ tasks: Task[] }> = ({ tasks }) => {
       },
         startAngle: -90, 
         endAngle: 90, 
-        center: ['50%', '75%'], 
-        size: '110%' } }, 
+        center: ['50%', '55%'], 
+        size: '110%' 
+      } 
+    }, 
         series: [{ 
           type: 'pie', 
           innerSize: '50%',
           data: data,
-        }] 
+        }] ,
+        responsive: { 
+          rules: [ { 
+            condition: { 
+              maxWidth: 320, 
+            }, 
+            chartOptions: { 
+              plotOptions: { 
+                pie: { 
+                  size: '330%', 
+                  center: ['50%', '150%'], 
+                  dataLabels: { 
+                    distance: -30, 
+                  }, 
+                }, 
+              }, 
+              title: { 
+                style: { 
+                  fontSize: '12px', 
+                }, 
+                y: 60, 
+              }, 
+            }, 
+          },
+          { 
+            condition: { 
+              minWidth: 368,
+              maxWidth: 600, 
+            }, 
+            chartOptions: { 
+              plotOptions: { 
+                pie: { 
+                  size: '200%', 
+                  center: ['50%', '90%'], 
+                  dataLabels: { 
+                    distance: -30, 
+                  }, 
+                }, 
+              }, 
+              title: { 
+                style: { 
+                  fontSize: '12px', 
+                }, 
+                y: 40, 
+              }, 
+            }, 
+            }, 
+          ], 
+        },
       };
 
   return (
