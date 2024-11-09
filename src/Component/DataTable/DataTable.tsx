@@ -18,6 +18,8 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
   const DataTable: React.FC<DataTableProps> = ({ tasks, setTasks }) => {
     const [snackbarOpen, setSnackbarOpen] = useState(false); 
     const [snackbarMessage, setSnackbarMessage] = useState(''); 
+    const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+
 
     const [mainDialogOpen, setMainDialogOpen] = useState(false); 
     const [nestedDialogOpen, setNestedDialogOpen] = useState(false); 
@@ -79,6 +81,12 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
         </div> ) }
   ];
 
+  const showSnackbar = (message: string, severity: 'success' | 'error') => { 
+    setSnackbarMessage(message); 
+    setSnackbarSeverity(severity); 
+    setSnackbarOpen(true); 
+  }; 
+
   const handleEdit = (id: number, event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     const task = tasks.find(task => task.id === id); 
@@ -97,11 +105,16 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
   const handleSaveEdit = () => { 
     if (selectedTask) { 
       const updatedTasks = tasks.map(task => task.id === selectedTask.id ? selectedTask : task ); 
-      setTasks(updatedTasks); 
-      localStorage.setItem('tasks', JSON.stringify(updatedTasks)); 
-      setEditTaskDialogOpen(false); 
-      setSnackbarMessage('Task updated successfully!'); 
-      setSnackbarOpen(true); 
+      if (selectedTask.estimate <= 0) {
+        showSnackbar('Estimate must be a positive number and grather than 0.', 'error');
+        
+        return
+      } else {
+        setTasks(updatedTasks); 
+        localStorage.setItem('tasks', JSON.stringify(updatedTasks)); 
+        setEditTaskDialogOpen(false); 
+        showSnackbar('Task updated successfully!','success'); 
+      }
     } 
   }
 // delete task
@@ -141,12 +154,11 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
       setTasks(updatedTasks); 
       localStorage.setItem('tasks', JSON.stringify(updatedTasks)); 
       setNestedDialogOpen(false); 
-      setSnackbarMessage('Task deleted successfully!'); 
-      setSnackbarOpen(true); 
+      showSnackbar('Task deleted successfully!', 'success'); 
+      
       setInputHash('');
     } else { 
-      setSnackbarMessage('Task key does not match! Task not deleted.'); 
-      setSnackbarOpen(true);
+      showSnackbar('Task key does not match! Task not deleted.', 'error'); 
       setInputHash('')
     } 
   }
@@ -183,8 +195,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
       setTasks(updatedTasks); 
       localStorage.setItem('tasks', JSON.stringify(updatedTasks)); 
       setEditDialogOpen(false); 
-      setSnackbarMessage('Status updated successfully!'); 
-      setSnackbarOpen(true); 
+      showSnackbar('Status updated successfully!', 'success'); 
     } 
   }
 
@@ -262,7 +273,10 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Select the new status for the task. 
+            Select the new status for 
+            <span style={{fontWeight: 'bold'}}>
+              {` ${selectedTask?.title}`}
+            </span> 
           </DialogContentText>
           <TextField 
             select 
@@ -357,7 +371,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
         onClose={handleSnackbarClose}> 
         <Alert 
           onClose={handleSnackbarClose} 
-          severity={snackbarMessage.includes('not') ? 'error' : 'success'}
+          severity={snackbarSeverity}
           variant="filled"
           > 
           {snackbarMessage} 
