@@ -22,10 +22,9 @@ export default function CurrentTime({}: Props) {
       justifyContent: {xs: 'left', md: 'right'}
       }}>
       <AccessAlarmOutlinedIcon 
-        sx={{mr: 1}} 
-        fontSize='large' 
+        sx={{mr: 1, fontSize:{xs: '30px', md:'35px', color: '#0a7d64'}}} 
       />
-      <Typography>
+      <Typography sx={{color: '#0a7d64'}}>
         {
           currentTime.format('YYYY-MM-DD - HH:mm:ss')
         }

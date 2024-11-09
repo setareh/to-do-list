@@ -37,8 +37,8 @@ export default function HomePage({}: Props) {
     <Container>
       <Box sx={{my: 2}}>
         <Grid2 container spacing={{ xs: 2 }} columns={{ xs: 12}}>
-          <Grid2 size={{ xs: 12, md: 6 }} >
-            <Typography variant="h1" fontSize={'26px'}>
+          <Grid2 size={{ xs: 12 }} >
+            <Typography variant="h1" fontSize={'26px'} textAlign={'center'}>
               To-do List
             </Typography>
           </Grid2>
@@ -46,10 +46,10 @@ export default function HomePage({}: Props) {
       </Box>
       <Box sx={{my: 2}}>
         <Grid2 container spacing={{ xs: 2, }} columns={{ xs: 12}} sx={{alignItems: 'center'}}>
-          <Grid2 size={{ xs: 12, md: 6 }} >
+          <Grid2 size={{ xs: 2, md: 6 }} >
             <AddTask onAddTask={addTask} />
           </Grid2>
-          <Grid2 size={{ xs: 12, md: 6}} >
+          <Grid2 size={{ xs: 10, md: 6}} >
             <CurrentTime />
           </Grid2>
       </Grid2>

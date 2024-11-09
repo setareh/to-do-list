@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Button, Dialog, DialogActions, DialogContent, InputLabel, MenuItem, Select, TextField, FormControl, SelectChangeEvent, Snackbar , Alert, SnackbarOrigin } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, InputLabel, MenuItem, Select, TextField, FormControl, SelectChangeEvent, Snackbar , Alert, SnackbarOrigin, IconButton } from "@mui/material";
 import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined';
 import { Priority, Status, Task } from '../../Types/Task';
 import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
@@ -68,9 +68,12 @@ const AddTask: React.FC<AddTaskProps> = ({onAddTask}) => {
 
     return (
     <>
-        <Button onClick={handleClickOpen}>
-          <AddCircleOutlineOutlinedIcon fontSize='large' />
-        </Button>
+        <IconButton 
+          onClick={handleClickOpen}
+          sx={{p:0, color: '#0a7d64'}}
+          >
+          <AddCircleOutlineOutlinedIcon sx={{fontSize:{xs: '30px', md:'35px'}}} />
+        </IconButton>
         <Snackbar 
           open={snackbarOpen} 
           autoHideDuration={2000} 

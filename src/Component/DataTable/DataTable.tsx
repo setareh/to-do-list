@@ -1,5 +1,5 @@
 import { Delete, Edit } from "@mui/icons-material";
-import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, MenuItem, Snackbar, TextField } from "@mui/material";
+import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid2, MenuItem, Snackbar, TextField } from "@mui/material";
 import { DataGrid, GridColDef, GridRenderCellParams, GridRowParams } from "@mui/x-data-grid";
 import React, { useState } from "react";
 import { Priority, Status, Task } from "../../Types/Task";
@@ -40,7 +40,7 @@ import SwapVertOutlinedIcon from '@mui/icons-material/SwapVertOutlined';
     { 
       field: 'title', 
       headerName: 'Title', 
-      width: 300, 
+      width: 500, 
       sortable: false, },
     { 
       field: 'priority', 
@@ -78,7 +78,7 @@ import SwapVertOutlinedIcon from '@mui/icons-material/SwapVertOutlined';
       sortable: false, 
       renderCell: (params: GridRenderCellParams) => ( 
         <div> 
-          <Button variant="text" color="primary" size="large" onClick={(event) => handleEdit(params.id as number, event)} style={{ marginRight: 8 }} > 
+          <Button variant="text" sx={{color: '#0a7d64'}} size="large" onClick={(event) => handleEdit(params.id as number, event)} style={{ marginRight: 8 }} > 
               <Edit /> 
           </Button> 
           <Button variant="text" color="error" size="large" onClick={(event) => handleDelete(params.id as number, event)} > 
@@ -231,24 +231,30 @@ import SwapVertOutlinedIcon from '@mui/icons-material/SwapVertOutlined';
       {
         tasks.length > 0 
           ? <>
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', width: {xs: '100%', md: '50%'}}}>
-                <TextField 
-                  label="Search" 
-                  value={searchQuery} 
-                  onChange={handleSearchChange} 
-                  size="small"
-                  variant="outlined"  
-                  sx={{mr: 2, mb: 2}}
-                />
-                <Button 
-                  onClick={toggleSortOrder} 
-                  variant="contained" 
-                  style={{backgroundColor: '#0a7d64'}}
-                  endIcon
-                > 
-                    <SwapVertOutlinedIcon />
-                    Sort by Priority ({sortOrder === 'asc' ? 'asc' : 'desc'})
-                  </Button>
+              <Box>
+                <Grid2 container spacing={{ xs: 2, }} columns={{ xs: 12}}>
+                  <Grid2 size={{ xs: 12, md: 6 }} >
+                    <TextField 
+                      label="Search" 
+                      value={searchQuery} 
+                      onChange={handleSearchChange} 
+                      size="small"
+                      variant="outlined"  
+                      fullWidth
+                      sx={{mr: 2}}
+                    />
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 6}} >
+                    <Button 
+                      onClick={toggleSortOrder} 
+                      variant="contained" 
+                      style={{backgroundColor: '#0a7d64', marginBottom: '16px'}}
+                    > 
+                        <SwapVertOutlinedIcon />
+                        Sort by Priority ({sortOrder === 'asc' ? 'asc' : 'desc'})
+                      </Button>
+                    </Grid2>
+                </Grid2>
               </Box>
               <Box sx={{ height: 400, width: '100%' }}>
                 <DataGrid
@@ -257,6 +263,7 @@ import SwapVertOutlinedIcon from '@mui/icons-material/SwapVertOutlined';
                     initialState={{ pagination: { paginationModel } }}
                     pageSizeOptions={[5, 10]}
                     onRowClick={handleRowClick}
+                    sx={{backgroundColor: '#fff'}}
                   />
               </Box>
             </>
