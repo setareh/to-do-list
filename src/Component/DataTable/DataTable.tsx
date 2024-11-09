@@ -1,5 +1,5 @@
 import { Delete, Edit } from "@mui/icons-material";
-import { Alert, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, MenuItem, Snackbar, TextField } from "@mui/material";
+import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, MenuItem, Snackbar, TextField } from "@mui/material";
 import { DataGrid, GridColDef, GridRenderCellParams, GridRowParams } from "@mui/x-data-grid";
 import React, { useState } from "react";
 import { Priority, Status, Task } from "../../Types/Task";
@@ -8,6 +8,7 @@ import { convertHours } from "../../utils/convertHours";
 import './DataTable.css'
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import SwapVertOutlinedIcon from '@mui/icons-material/SwapVertOutlined';
   interface DataTableProps {
     tasks : Task[];
     setTasks: React.Dispatch<React.SetStateAction<Task[]>>
@@ -29,6 +30,11 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [editTaskDialogOpen, setEditTaskDialogOpen] = useState(false);
     const [status, setStatus] = useState<Status>(Status.TODO);
+
+    const [searchQuery, setSearchQuery] = useState<string>('');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+    const priorityOrder = { [Priority.LOW]: 3, [Priority.MEDIUM]: 2, [Priority.HIGH]: 1, };
 
   const columns: GridColDef[] = [
     { 
@@ -86,6 +92,27 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
     setSnackbarSeverity(severity); 
     setSnackbarOpen(true); 
   }; 
+
+
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => { 
+    setSearchQuery(e.target.value); }; 
+    const toggleSortOrder = () => { 
+      setSortOrder(prevOrder => (prevOrder === 'asc' ? 'desc' : 'asc')); 
+    }
+    
+  const getFilteredTasks = () => { 
+    return tasks.filter(task => task.title.toLowerCase().includes(searchQuery.toLowerCase())); 
+  }
+  
+  const getSortedTasks = () => { 
+    return getFilteredTasks().sort((a, b) => { 
+      if (sortOrder === 'asc') { return priorityOrder[a.priority] - priorityOrder[b.priority]; 
+      } else { 
+        return priorityOrder[b.priority] - priorityOrder[a.priority]; } 
+      }
+    ); 
+  };
 
   const handleEdit = (id: number, event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
@@ -199,19 +226,40 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
     } 
   }
 
-
-
   return (
     <>
       {
         tasks.length > 0 
-          ? <DataGrid
-              rows={tasks}
-              columns={columns}
-              initialState={{ pagination: { paginationModel } }}
-              pageSizeOptions={[5, 10]}
-              onRowClick={handleRowClick}
-            />
+          ? <>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', width: {xs: '100%', md: '50%'}}}>
+                <TextField 
+                  label="Search" 
+                  value={searchQuery} 
+                  onChange={handleSearchChange} 
+                  size="small"
+                  variant="outlined"  
+                  sx={{mr: 2, mb: 2}}
+                />
+                <Button 
+                  onClick={toggleSortOrder} 
+                  variant="contained" 
+                  style={{backgroundColor: '#0a7d64'}}
+                  endIcon
+                > 
+                    <SwapVertOutlinedIcon />
+                    Sort by Priority ({sortOrder === 'asc' ? 'asc' : 'desc'})
+                  </Button>
+              </Box>
+              <Box sx={{ height: 400, width: '100%' }}>
+                <DataGrid
+                    rows={getSortedTasks()}
+                    columns={columns}
+                    initialState={{ pagination: { paginationModel } }}
+                    pageSizeOptions={[5, 10]}
+                    onRowClick={handleRowClick}
+                  />
+              </Box>
+            </>
           : <Alert severity="info" icon={false}>
               There is no Task
             </Alert> 
