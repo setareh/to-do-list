@@ -317,6 +317,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
                     label="Choose time"
                     value={dayjs(selectedTask.dateTime)}
                     onChange={(newValue) => handleFieldChange('dateTime', newValue)}
+                    disablePast={true}
                     sx={{mb: 2}}
                     />
                 </LocalizationProvider>

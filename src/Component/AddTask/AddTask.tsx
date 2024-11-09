@@ -138,6 +138,7 @@ const AddTask: React.FC<AddTaskProps> = ({onAddTask}) => {
                     label="Choose time"
                     value={dayjs(dateTime)}
                     onChange={handleDateTime}
+                    disablePast={true}
                     sx={{mb: 2, mr: 2}}
                     />
                 {/* </DemoContainer> */}
